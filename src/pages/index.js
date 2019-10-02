@@ -32,10 +32,11 @@ const CustomTooltip = ({ active, payload, label }) => {
     return (
       <div className="b--solid pa2 mv2">
         {payload.map(p => (
-          <div>
+          <div key={p.name}>
             {p.name}: ${p.payload.afterCoverage}
           </div>
         ))}
+        before coverage: {payload[0].payload.beforeCoverage}
       </div>
     )
   }
@@ -145,9 +146,18 @@ class IndexPage extends React.Component {
 
     return (
       <Layout>
+        <p>
+          <b>How to use the chart:</b> First figure out how much you are likely
+          to pay if you had no insurance. This is hard to do, but is possible.
+          For example, if you have two annual procedures that cost $600 each
+          time, I can expect to pay $1,200 annualy. Then on the chart, find 1200
+          on the X axis, then the plan lowest on the Y axis is likely the best
+          for you. Also interesting to note, F2 is least likely to be worth it.
+        </p>
         {this.state.plans.map((plan, index) => {
           return (
             <div
+              key={plan.name}
               className="b--solid pa2 mv2"
               style={{ display: "flex", flexWrap: "wrap" }}
             >
