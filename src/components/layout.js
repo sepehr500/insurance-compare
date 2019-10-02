@@ -25,6 +25,16 @@ const Layout = ({ children }) => {
 
   return (
     <>
+      <head>
+        <link
+          rel="stylesheet"
+          href="//cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css"
+        />
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css"
+        />
+      </head>
       <Header siteTitle={data.site.siteMetadata.title} />
       <div
         style={{
