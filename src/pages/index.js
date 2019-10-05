@@ -7,11 +7,22 @@ import {
   Legend,
   Line,
   Tooltip,
+  ResponsiveContainer,
 } from "recharts"
-import { Input as SInput, Button, Card } from "semantic-ui-react"
+import { Input as SInput, Button, Popup, Icon } from "semantic-ui-react"
 import { update, last, max } from "ramda"
 
 import Layout from "../components/layout"
+
+
+  const getUniqueId = () => {
+    return (
+      "_" +
+      Math.random()
+        .toString(36)
+        .substr(2, 9)
+    )
+  }
 
 const BLANK_PLAN = {
   name: "plan 1",
@@ -21,22 +32,29 @@ const BLANK_PLAN = {
   deductable: 0,
 }
 
-const COLORS = ["red", "blue", "green", "purple"]
+const COLORS = ["red", "blue", "green", "purple", "black", "yellow", "orange"]
+
+const getColor = i => COLORS[i % COLORS.length]
 
 const MAX_SPENT = 20000
 
 const CustomTooltip = ({ active, payload, label }) => {
-  // console.log(active)
-  console.log(payload)
   if (active) {
     return (
-      <div className="b--solid pa2 mv2">
+      <div
+        className="border-solid
+      border-2 rounded-lg  shadow-lg
+      p-2 my-2 bg-gray-200"
+      >
         {payload.map(p => (
           <div key={p.name}>
-            {p.name}: ${p.payload.afterCoverage}
+            <span className="font-bold" style={{ color: p.stroke }}>
+              {p.name}
+            </span>
+            : ${p.payload.afterCoverage}
           </div>
         ))}
-        before coverage: {payload[0].payload.beforeCoverage}
+        Before coverage: ${payload[0].payload.beforeCoverage}
       </div>
     )
   }
@@ -44,12 +62,27 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null
 }
 
-const Input = ({ label, id, onChange, name, value, type }) => (
-  <div className="mv2 mh2">
-    <label className="db pb1 b" htmlFor={id}>
-      {label}
-    </label>
+const Input = ({ label, id, onChange, name, value, type, popupText, icon }) => (
+  <div className="m-2">
+    <div className="pb-2">
+      <label className="font-bold mr-2" htmlFor={id}>
+        {label}
+      </label>
+      {popupText && (
+        <Popup
+          position="top center"
+          basic
+          content={popupText}
+          trigger={<Icon name="info circle" />}
+        />
+      )}
+    </div>
     <SInput
+      icon={icon}
+      max={icon === "percent" ? "100" : null}
+      min="0"
+      iconPosition={icon && "left"}
+      className={icon === "percent" ? "w-32" : "w-40"}
       size="small"
       type={type}
       onChange={onChange}
@@ -68,6 +101,7 @@ class IndexPage extends React.Component {
         maxOOP: 6350,
         coinsurance: 80,
         deductable: 2000,
+        id: getUniqueId()
       },
       {
         name: "F3",
@@ -75,6 +109,7 @@ class IndexPage extends React.Component {
         maxOOP: 4000,
         coinsurance: 80,
         deductable: 1000,
+        id: getUniqueId()
       },
       {
         name: "G5",
@@ -82,6 +117,7 @@ class IndexPage extends React.Component {
         maxOOP: 3000,
         coinsurance: 100,
         deductable: 2000,
+        id: getUniqueId()
       },
       {
         name: "F2",
@@ -89,6 +125,7 @@ class IndexPage extends React.Component {
         maxOOP: 3000,
         coinsurance: 80,
         deductable: 500,
+        id: getUniqueId()
       },
     ],
   }
@@ -96,18 +133,29 @@ class IndexPage extends React.Component {
   handleValueChange(value, name, index) {
     const planCopy = Object.assign({}, this.state.plans[index])
     planCopy[name] = name === "name" ? value : parseInt(value)
+    console.log(planCopy)
     this.setState({ plans: update(index, planCopy, this.state.plans) })
   }
 
   addPlan = () => {
     this.setState({
       plans: this.state.plans.concat(
-        Object.assign(BLANK_PLAN, {
+        Object.assign({}, BLANK_PLAN, {
           name: `plan ${this.state.plans.length + 1}`,
+          id: getUniqueId()
         })
       ),
     })
   }
+
+  deletePlan = i => {
+    this.setState({
+      plans: this.state.plans
+        .slice(0, i)
+        .concat(this.state.plans.slice(i + 1, this.state.plans.length)),
+    })
+  }
+
   render() {
     const series = []
 
@@ -152,100 +200,122 @@ class IndexPage extends React.Component {
           For example, if you have two annual procedures that cost $600 each
           time, I can expect to pay $1,200 annualy. Then on the chart, find 1200
           on the X axis, then the plan lowest on the Y axis is likely the best
-          for you. Also interesting to note, F2 is least likely to be worth it.
+          for you.
         </p>
         {this.state.plans.map((plan, index) => {
           return (
             <div
-              key={plan.name}
-              className="b--solid pa2 mv2"
-              style={{ display: "flex", flexWrap: "wrap" }}
+              key={plan.id}
+              className="p-2 my-2 border-2 rounded-lg  shadow-lg relative"
             >
-              <Input
-                onChange={e =>
-                  this.handleValueChange(e.target.value, e.target.name, index)
-                }
-                label="Plan name"
-                name="name"
-                value={plan.name}
-              />
-              <Input
-                type="number"
-                onChange={e =>
-                  this.handleValueChange(e.target.value, e.target.name, index)
-                }
-                name="premium"
-                label="Premium($)"
-                value={plan.premium}
-              />
-              <Input
-                type="number"
-                onChange={e =>
-                  this.handleValueChange(e.target.value, e.target.name, index)
-                }
-                name="maxOOP"
-                label="Max out of pocket($)"
-                value={plan.maxOOP}
-              />
-              <Input
-                type="number"
-                onChange={e =>
-                  this.handleValueChange(e.target.value, e.target.name, index)
-                }
-                name="coinsurance"
-                label="Coinsurance(%)"
-                value={plan.coinsurance}
-              />
-              <Input
-                type="number"
-                onChange={e =>
-                  this.handleValueChange(e.target.value, e.target.name, index)
-                }
-                name="deductable"
-                label="Deductable($)"
-                value={plan.deductable}
-              />
+              <div
+                style={{ borderColor: getColor(index) }}
+                className="border-l-2 border-solid flex flex-wrap"
+              >
+                <Input
+                  onChange={e =>
+                    this.handleValueChange(e.target.value, e.target.name, index)
+                  }
+                  label="Plan name"
+                  name="name"
+                  value={plan.name}
+                />
+                <Input
+                  type="number"
+                  onChange={e =>
+                    this.handleValueChange(e.target.value, e.target.name, index)
+                  }
+                  name="premium"
+                  label="Premium"
+                  icon="dollar"
+                  value={plan.premium}
+                  popupText="Amount you pay every month"
+                />
+                <Input
+                  type="number"
+                  onChange={e =>
+                    this.handleValueChange(e.target.value, e.target.name, index)
+                  }
+                  icon="dollar"
+                  name="maxOOP"
+                  label="Max out of pocket"
+                  value={plan.maxOOP}
+                />
+                <Input
+                  type="number"
+                  onChange={e =>
+                    this.handleValueChange(e.target.value, e.target.name, index)
+                  }
+                  name="coinsurance"
+                  label="Coinsurance"
+                  icon="percent"
+                  value={plan.coinsurance}
+                  popupText="Amount your insurance will pay after you hit your deductable"
+                />
+                <Input
+                  type="number"
+                  onChange={e =>
+                    this.handleValueChange(e.target.value, e.target.name, index)
+                  }
+                  name="deductable"
+                  label="Deductable"
+                  icon="dollar"
+                  value={plan.deductable}
+                  popupText="Amount you need to pay until your insurance kicks in"
+                />
+              </div>
+              <Button
+                aria-label="Delete"
+                className="absolute"
+                style={{ top: "6px", right: "-1px" }}
+                icon
+                onClick={() => this.deletePlan(index)}
+              >
+                <Icon name="trash" />
+              </Button>
             </div>
           )
         })}
-        <div className="mv3">
+        <div className="my-2">
           <Button onClick={this.addPlan}>Add</Button>
         </div>
-        <LineChart width={1000} height={1000}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            allowDuplicatedCategory={false}
-            dataKey="beforeCoverage"
-            type="number"
-            label={{
-              value: "Price before coverage per year",
-              position: "insideBottom",
-              offset: 0,
-            }}
-          />
-          <YAxis
-            allowDuplicatedCategory={false}
-            dataKey="afterCoverage"
-            type="number"
-            label={{
-              value: "Price after coverage per year",
-              angle: -90,
-              position: "insideLeft",
-            }}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend />
-          {series.map((s, i) => (
-            <Line
-              type="monotone"
-              stroke={COLORS[i]}
-              dataKey="afterCoverage"
-              data={s.data}
-              name={s.name}
-              key={s.name}
+        <ResponsiveContainer width={"99%"} height={1000}>
+          <LineChart>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              allowDuplicatedCategory={false}
+              dataKey="beforeCoverage"
+              type="number"
+              label={{
+                value: "Price before coverage per year",
+                position: "insideBottom",
+                offset: 0,
+              }}
             />
-          ))}
-        </LineChart>
+            <YAxis
+              allowDuplicatedCategory={false}
+              dataKey="afterCoverage"
+              type="number"
+              label={{
+                value: "Price after coverage per year",
+                angle: -90,
+                position: "insideLeft",
+              }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend />
+            {series.map((s, i) => (
+              <Line
+                type="monotone"
+                stroke={COLORS[i]}
+                dataKey="afterCoverage"
+                data={s.data}
+                name={s.name}
+                key={s.name}
+              />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
       </Layout>
     )
   }
