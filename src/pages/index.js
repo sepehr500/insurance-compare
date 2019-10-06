@@ -72,7 +72,7 @@ const CustomTooltip = ({ active, payload, label }) => {
             <span className="font-bold" style={{ color: p.stroke }}>
               {p.name}
             </span>
-            : ${p.payload.afterCoverage}
+            : ${p.payload.afterCoverage.toFixed(0)}
           </div>
         ))}
         Before coverage: ${payload[0].payload.beforeCoverage}
@@ -214,32 +214,6 @@ class IndexPage extends React.Component {
         name: plan.name,
         data: this.calculateInsurance(JSON.stringify(plan)),
       }
-      // for (let index = 0; index < MAX_SPENT; index = index + 100) {
-      //   const yearPremium = plan.premium * 12
-      //   const coInsuranceDecim = 1 - plan.coinsurance / 100
-      //   if (
-      //     last(series[i].data) &&
-      //     last(series[i].data).afterCoverage - yearPremium >= plan.maxOOP
-      //   ) {
-      //     series[i].data.push({
-      //       afterCoverage: last(series[i].data).afterCoverage,
-      //       beforeCoverage: index,
-      //     })
-      //   } else if (index < plan.deductable) {
-      //     series[i].data.push({
-      //       afterCoverage: index + yearPremium,
-      //       beforeCoverage: index,
-      //     })
-      //   } else {
-      //     series[i].data.push({
-      //       afterCoverage:
-      //         yearPremium +
-      //         plan.deductable +
-      //         (index - plan.deductable) * coInsuranceDecim,
-      //       beforeCoverage: index,
-      //     })
-      //   }
-      // }
     })
 
     return (
@@ -248,7 +222,7 @@ class IndexPage extends React.Component {
           <b>How to use the chart:</b> First figure out how much you are likely
           to pay if you had no insurance. This is hard to do, but is possible.
           For example, if you have two annual procedures that cost $600 each
-          time, I can expect to pay $1,200 annualy. Then on the chart, find 1200
+          time, I can expect to pay $1,200 annualy. Then on the chart, find $1,200
           on the X axis, then the plan lowest on the Y axis is likely the best
           for you.
         </p>
