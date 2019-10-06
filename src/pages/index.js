@@ -10,19 +10,31 @@ import {
   ResponsiveContainer,
 } from "recharts"
 import { Input as SInput, Button, Popup, Icon } from "semantic-ui-react"
-import { update, last, max } from "ramda"
+import { update, last } from "ramda"
 
 import Layout from "../components/layout"
 
-
-  const getUniqueId = () => {
-    return (
-      "_" +
-      Math.random()
-        .toString(36)
-        .substr(2, 9)
-    )
+const memo = fn => {
+  const cache = {}
+  return param => {
+    const hitCache = cache[param]
+    if (hitCache) {
+      return hitCache
+    }
+    const result = fn(param)
+    cache[param] = result
+    return result
   }
+}
+
+const getUniqueId = () => {
+  return (
+    "_" +
+    Math.random()
+      .toString(36)
+      .substr(2, 9)
+  )
+}
 
 const BLANK_PLAN = {
   name: "plan 1",
@@ -32,7 +44,16 @@ const BLANK_PLAN = {
   deductable: 0,
 }
 
-const COLORS = ["red", "blue", "green", "purple", "black", "yellow", "orange"]
+const COLORS = [
+  "red",
+  "blue",
+  "green",
+  "purple",
+  "black",
+  "yellow",
+  "orange",
+  "deepskyblue",
+]
 
 const getColor = i => COLORS[i % COLORS.length]
 
@@ -87,7 +108,7 @@ const Input = ({ label, id, onChange, name, value, type, popupText, icon }) => (
       type={type}
       onChange={onChange}
       name={name}
-      value={value}
+      value={value === null ? "" : value}
     />
   </div>
 )
@@ -101,7 +122,7 @@ class IndexPage extends React.Component {
         maxOOP: 6350,
         coinsurance: 80,
         deductable: 2000,
-        id: getUniqueId()
+        id: getUniqueId(),
       },
       {
         name: "F3",
@@ -109,7 +130,7 @@ class IndexPage extends React.Component {
         maxOOP: 4000,
         coinsurance: 80,
         deductable: 1000,
-        id: getUniqueId()
+        id: getUniqueId(),
       },
       {
         name: "G5",
@@ -117,7 +138,7 @@ class IndexPage extends React.Component {
         maxOOP: 3000,
         coinsurance: 100,
         deductable: 2000,
-        id: getUniqueId()
+        id: getUniqueId(),
       },
       {
         name: "F2",
@@ -125,15 +146,15 @@ class IndexPage extends React.Component {
         maxOOP: 3000,
         coinsurance: 80,
         deductable: 500,
-        id: getUniqueId()
+        id: getUniqueId(),
       },
     ],
   }
 
   handleValueChange(value, name, index) {
     const planCopy = Object.assign({}, this.state.plans[index])
-    planCopy[name] = name === "name" ? value : parseInt(value)
-    console.log(planCopy)
+    planCopy[name] =
+      name === "name" ? value : value === "" ? "" : parseInt(value)
     this.setState({ plans: update(index, planCopy, this.state.plans) })
   }
 
@@ -142,7 +163,7 @@ class IndexPage extends React.Component {
       plans: this.state.plans.concat(
         Object.assign({}, BLANK_PLAN, {
           name: `plan ${this.state.plans.length + 1}`,
-          id: getUniqueId()
+          id: getUniqueId(),
         })
       ),
     })
@@ -156,40 +177,69 @@ class IndexPage extends React.Component {
     })
   }
 
+  calculateInsurance = memo(strPlan => {
+    const plan = JSON.parse(strPlan)
+    const data = []
+    for (let index = 0; index < MAX_SPENT; index = index + 100) {
+      const yearPremium = plan.premium * 12
+      const coInsuranceDecim = 1 - plan.coinsurance / 100
+      if (last(data) && last(data).afterCoverage - yearPremium >= plan.maxOOP) {
+        data.push({
+          afterCoverage: last(data).afterCoverage,
+          beforeCoverage: index,
+        })
+      } else if (index < plan.deductable) {
+        data.push({
+          afterCoverage: index + yearPremium,
+          beforeCoverage: index,
+        })
+      } else {
+        data.push({
+          afterCoverage:
+            yearPremium +
+            plan.deductable +
+            (index - plan.deductable) * coInsuranceDecim,
+          beforeCoverage: index,
+        })
+      }
+    }
+    return data
+  })
+
   render() {
     const series = []
 
     this.state.plans.forEach((plan, i) => {
       series[i] = {
         name: plan.name,
-        data: [],
+        data: this.calculateInsurance(JSON.stringify(plan)),
       }
-      for (let index = 0; index < MAX_SPENT; index = index + 50) {
-        const yearPremium = plan.premium * 12
-        const coInsuranceDecim = 1 - plan.coinsurance / 100
-        if (
-          last(series[i].data) &&
-          last(series[i].data).afterCoverage - yearPremium >= plan.maxOOP
-        ) {
-          series[i].data.push({
-            afterCoverage: last(series[i].data).afterCoverage,
-            beforeCoverage: index,
-          })
-        } else if (index < plan.deductable) {
-          series[i].data.push({
-            afterCoverage: index + yearPremium,
-            beforeCoverage: index,
-          })
-        } else {
-          series[i].data.push({
-            afterCoverage:
-              yearPremium +
-              plan.deductable +
-              (index - plan.deductable) * coInsuranceDecim,
-            beforeCoverage: index,
-          })
-        }
-      }
+      // for (let index = 0; index < MAX_SPENT; index = index + 100) {
+      //   const yearPremium = plan.premium * 12
+      //   const coInsuranceDecim = 1 - plan.coinsurance / 100
+      //   if (
+      //     last(series[i].data) &&
+      //     last(series[i].data).afterCoverage - yearPremium >= plan.maxOOP
+      //   ) {
+      //     series[i].data.push({
+      //       afterCoverage: last(series[i].data).afterCoverage,
+      //       beforeCoverage: index,
+      //     })
+      //   } else if (index < plan.deductable) {
+      //     series[i].data.push({
+      //       afterCoverage: index + yearPremium,
+      //       beforeCoverage: index,
+      //     })
+      //   } else {
+      //     series[i].data.push({
+      //       afterCoverage:
+      //         yearPremium +
+      //         plan.deductable +
+      //         (index - plan.deductable) * coInsuranceDecim,
+      //       beforeCoverage: index,
+      //     })
+      //   }
+      // }
     })
 
     return (
