@@ -115,6 +115,7 @@ const Input = ({ label, id, onChange, name, value, type, popupText, icon }) => (
 
 class IndexPage extends React.Component {
   state = {
+    beforeCoverage: 0,
     plans: [
       {
         name: "G1",
@@ -206,6 +207,20 @@ class IndexPage extends React.Component {
     return data
   })
 
+  findBestPlan = (series, beforeCoverageAmount) => {
+    return series
+      .map(line => {
+        const filteredAmounts = line.data.filter(point => {
+          return point.beforeCoverage <= beforeCoverageAmount
+        })
+        return {
+          name: line.name,
+          afterCoverage:
+            filteredAmounts[filteredAmounts.length - 1].afterCoverage,
+        }
+      })
+      .reduce((acc, cur) => (acc.afterCoverage < cur.afterCoverage ? acc : cur))
+  }
   render() {
     const series = []
 
@@ -216,15 +231,18 @@ class IndexPage extends React.Component {
       }
     })
 
+    const result = this.findBestPlan(series, this.state.beforeCoverage || 0)
+
+
     return (
       <Layout>
-        <p>
+        <p className="text-xl">
           <b>How to use the chart:</b> First figure out how much you are likely
           to pay if you had no insurance. This is hard to do, but is possible.
           For example, if you have two annual procedures that cost $600 each
-          time, I can expect to pay $1,200 annualy. Then on the chart, find $1,200
-          on the X axis, then the plan lowest on the Y axis is likely the best
-          for you.
+          time, I can expect to pay $1,200 annualy. Then on the chart, find
+          $1,200 on the X axis, then the plan lowest on the Y axis is likely the
+          best for you.
         </p>
         {this.state.plans.map((plan, index) => {
           return (
@@ -301,8 +319,24 @@ class IndexPage extends React.Component {
           )
         })}
         <div className="my-2">
-          <Button onClick={this.addPlan}>Add</Button>
+          <Button onClick={this.addPlan}>Add Insurance</Button>
         </div>
+        <div>
+          <Input
+            onChange={e =>
+              this.setState({ beforeCoverage: parseInt(e.target.value) })
+            }
+            type="number"
+            icon="dollar"
+            label="Enter amount you would pay if you had no insurance"
+            name="beforeCoverage"
+            value={isNaN(this.state.beforeCoverage) ? "" : this.state.beforeCoverage}
+          />
+        </div>
+        {!isNaN(this.state.beforeCoverage) && <h2>
+          If you plan on spending {this.state.beforeCoverage} then the best is
+          option is <span style={{color: getColor(this.state.plans.findIndex(plan => plan.name === result.name))}}>{result.name}</span>. You would spend ${result.afterCoverage.toFixed(0)}.
+        </h2>}
         <ResponsiveContainer width={"99%"} height={1000}>
           <LineChart>
             <CartesianGrid strokeDasharray="3 3" />

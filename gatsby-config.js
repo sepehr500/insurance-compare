@@ -2,7 +2,7 @@ module.exports = {
   siteMetadata: {
     title: "Insurance Comparison Visualizer",
     description: `Insurance calculator`,
-    author: `@gatsbyjs`,
+    author: `sepehr500`,
   },
   plugins: [
     `gatsby-plugin-react-helmet`,
@@ -19,13 +19,13 @@ module.exports = {
     {
       resolve: `gatsby-plugin-manifest`,
       options: {
-        name: `gatsby-starter-default`,
-        short_name: `starter`,
+        name: `insurance-compare`,
+        short_name: `insurance`,
         start_url: `/`,
-        background_color: `#663399`,
-        theme_color: `#663399`,
+        background_color: `#03adfc`,
+        theme_color: "#03adfc",
         display: `minimal-ui`,
-        icon: `src/images/gatsby-icon.png`, // This path is relative to the root of the site.
+        icon: `src/images/i-cardiology.png`, // This path is relative to the root of the site.
       },
     },
     // this (optional) plugin enables Progressive Web App + Offline functionality
