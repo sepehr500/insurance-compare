@@ -334,7 +334,7 @@ class IndexPage extends React.Component {
           />
         </div>
         {!isNaN(this.state.beforeCoverage) && <h2>
-          If you plan on spending {this.state.beforeCoverage} then the best is
+          If you plan on spending ${this.state.beforeCoverage} then the best is
           option is <span style={{color: getColor(this.state.plans.findIndex(plan => plan.name === result.name))}}>{result.name}</span>. You would spend ${result.afterCoverage.toFixed(0)}.
         </h2>}
         <ResponsiveContainer width={"99%"} height={1000}>
