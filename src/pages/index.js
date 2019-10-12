@@ -41,7 +41,7 @@ const BLANK_PLAN = {
   premium: 0,
   maxOOP: 0,
   coinsurance: 0,
-  deductable: 0,
+  deductible: 0,
 }
 
 const COLORS = [
@@ -121,32 +121,32 @@ class IndexPage extends React.Component {
         name: "G1",
         premium: 0,
         maxOOP: 6350,
-        coinsurance: 80,
-        deductable: 2000,
+        coinsurance: 20,
+        deductible: 2000,
         id: getUniqueId(),
       },
       {
         name: "F3",
         premium: 56.6,
         maxOOP: 4000,
-        coinsurance: 80,
-        deductable: 1000,
+        coinsurance: 20,
+        deductible: 1000,
         id: getUniqueId(),
       },
       {
         name: "G5",
         premium: 101.37,
         maxOOP: 3000,
-        coinsurance: 100,
-        deductable: 2000,
+        coinsurance: 0,
+        deductible: 2000,
         id: getUniqueId(),
       },
       {
         name: "F2",
         premium: 135.43,
         maxOOP: 3000,
-        coinsurance: 80,
-        deductable: 500,
+        coinsurance: 20,
+        deductible: 500,
         id: getUniqueId(),
       },
     ],
@@ -183,13 +183,13 @@ class IndexPage extends React.Component {
     const data = []
     for (let index = 0; index < MAX_SPENT; index = index + 100) {
       const yearPremium = plan.premium * 12
-      const coInsuranceDecim = 1 - plan.coinsurance / 100
+      const coInsuranceDecim = plan.coinsurance / 100
       if (last(data) && last(data).afterCoverage - yearPremium >= plan.maxOOP) {
         data.push({
           afterCoverage: last(data).afterCoverage,
           beforeCoverage: index,
         })
-      } else if (index < plan.deductable) {
+      } else if (index < plan.deductible) {
         data.push({
           afterCoverage: index + yearPremium,
           beforeCoverage: index,
@@ -198,8 +198,8 @@ class IndexPage extends React.Component {
         data.push({
           afterCoverage:
             yearPremium +
-            plan.deductable +
-            (index - plan.deductable) * coInsuranceDecim,
+            plan.deductible +
+            (index - plan.deductible) * coInsuranceDecim,
           beforeCoverage: index,
         })
       }
@@ -274,32 +274,32 @@ class IndexPage extends React.Component {
                   onChange={e =>
                     this.handleValueChange(e.target.value, e.target.name, index)
                   }
+                  name="deductible"
+                  label="Deductible"
                   icon="dollar"
-                  name="maxOOP"
-                  label="Max out of pocket"
-                  value={plan.maxOOP}
+                  value={plan.deductible}
+                  popupText="Amount you need to pay until your insurance kicks in"
                 />
                 <Input
                   type="number"
-                  onChange={e =>
+                  onChange={e => {
                     this.handleValueChange(e.target.value, e.target.name, index)
-                  }
+                  }}
                   name="coinsurance"
                   label="Coinsurance"
                   icon="percent"
                   value={plan.coinsurance}
-                  popupText="Amount your insurance will pay after you hit your deductable"
+                  popupText="Amount you pay after you hit your deductible"
                 />
                 <Input
                   type="number"
                   onChange={e =>
                     this.handleValueChange(e.target.value, e.target.name, index)
                   }
-                  name="deductable"
-                  label="Deductable"
                   icon="dollar"
-                  value={plan.deductable}
-                  popupText="Amount you need to pay until your insurance kicks in"
+                  name="maxOOP"
+                  label="Max out of pocket"
+                  value={plan.maxOOP}
                 />
               </div>
               {index !== 0 && (
