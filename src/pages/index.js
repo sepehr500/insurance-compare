@@ -233,12 +233,12 @@ class IndexPage extends React.Component {
 
     const result = this.findBestPlan(series, this.state.beforeCoverage || 0)
 
-
     return (
       <Layout>
         <h1 className="text-2xl">
-          Picking health insurance can be complicated and confusing. This tool should make it easier. Just enter 
-          your insurance information followed by the amount you think you would spend without insurance.
+          Picking health insurance can be complicated and confusing. This tool
+          should make it easier. Just enter your insurance information followed
+          by the amount you think you would spend without insurance.
         </h1>
         {this.state.plans.map((plan, index) => {
           return (
@@ -302,15 +302,17 @@ class IndexPage extends React.Component {
                   popupText="Amount you need to pay until your insurance kicks in"
                 />
               </div>
-              <Button
-                aria-label="Delete"
-                className="absolute"
-                style={{ top: "6px", right: "-1px" }}
-                icon
-                onClick={() => this.deletePlan(index)}
-              >
-                <Icon name="trash" />
-              </Button>
+              {index !== 0 && (
+                <Button
+                  aria-label="Delete"
+                  className="absolute"
+                  style={{ top: "6px", right: "-1px" }}
+                  icon
+                  onClick={() => this.deletePlan(index)}
+                >
+                  <Icon name="trash" />
+                </Button>
+              )}
             </div>
           )
         })}
@@ -326,13 +328,27 @@ class IndexPage extends React.Component {
             icon="dollar"
             label="Enter amount you would pay if you had no insurance"
             name="beforeCoverage"
-            value={isNaN(this.state.beforeCoverage) ? "" : this.state.beforeCoverage}
+            value={
+              isNaN(this.state.beforeCoverage) ? "" : this.state.beforeCoverage
+            }
           />
         </div>
-        {!isNaN(this.state.beforeCoverage) && <h2>
-          If you plan on spending ${this.state.beforeCoverage} then the best is
-          option is <span style={{color: getColor(this.state.plans.findIndex(plan => plan.name === result.name))}}>{result.name}</span>. You would spend ${result.afterCoverage.toFixed(0)}.
-        </h2>}
+        {!isNaN(this.state.beforeCoverage) && (
+          <h2>
+            If you plan on spending ${this.state.beforeCoverage} then the best
+            is option is{" "}
+            <span
+              style={{
+                color: getColor(
+                  this.state.plans.findIndex(plan => plan.name === result.name)
+                ),
+              }}
+            >
+              {result.name}
+            </span>
+            . You would spend ${result.afterCoverage.toFixed(0)}.
+          </h2>
+        )}
         <ResponsiveContainer width={"99%"} height={1000}>
           <LineChart>
             <CartesianGrid strokeDasharray="3 3" />
