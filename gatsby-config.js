@@ -1,6 +1,6 @@
 module.exports = {
   siteMetadata: {
-    title: "Insurance Comparison Visualizer",
+    title: "Which health insurance should I pick?",
     description: `Insurance calculator`,
     author: `sepehr500`,
   },

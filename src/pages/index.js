@@ -236,14 +236,10 @@ class IndexPage extends React.Component {
 
     return (
       <Layout>
-        <p className="text-xl">
-          <b>How to use the chart:</b> First figure out how much you are likely
-          to pay if you had no insurance. This is hard to do, but is possible.
-          For example, if you have two annual procedures that cost $600 each
-          time, I can expect to pay $1,200 annualy. Then on the chart, find
-          $1,200 on the X axis, then the plan lowest on the Y axis is likely the
-          best for you.
-        </p>
+        <h1 className="text-2xl">
+          Picking health insurance can be complicated and confusing. This tool should make it easier. Just enter 
+          your insurance information followed by the amount you think you would spend without insurance.
+        </h1>
         {this.state.plans.map((plan, index) => {
           return (
             <div
